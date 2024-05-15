@@ -1,4 +1,4 @@
-module alertbot
+module github.com/abobacode/alertbot
 
 go 1.22.3
 
