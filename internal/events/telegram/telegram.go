@@ -3,9 +3,9 @@ package telegram
 import (
 	"log"
 
-	"alertbot/internal/events"
-	"alertbot/internal/models"
-	"alertbot/internal/usecase"
+	"github.com/abobacode/alertbot/internal/events"
+	"github.com/abobacode/alertbot/internal/models"
+	"github.com/abobacode/alertbot/internal/usecase"
 )
 
 type Processor struct {

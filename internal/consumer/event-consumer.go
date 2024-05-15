@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"alertbot/internal/events"
+	"github.com/abobacode/alertbot/internal/events"
 )
 
 type Consumer struct {

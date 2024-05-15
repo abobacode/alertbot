@@ -6,10 +6,10 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"alertbot/config"
-	"alertbot/internal/consumer"
-	"alertbot/internal/events/telegram"
-	"alertbot/internal/usecase"
+	"github.com/abobacode/alertbot/config"
+	"github.com/abobacode/alertbot/internal/consumer"
+	"github.com/abobacode/alertbot/internal/events/telegram"
+	"github.com/abobacode/alertbot/internal/usecase"
 )
 
 const (

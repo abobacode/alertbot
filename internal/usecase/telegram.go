@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"alertbot/config"
-	"alertbot/internal/models"
+	"github.com/abobacode/alertbot/config"
+	"github.com/abobacode/alertbot/internal/models"
 )
 
 type Client struct {
