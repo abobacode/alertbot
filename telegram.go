@@ -1,4 +1,4 @@
-package usecase
+package alertbot
 
 import (
 	"bytes"
@@ -13,52 +13,46 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-
-	"github.com/abobacode/alertbot/config"
-	"github.com/abobacode/alertbot/internal/models"
 )
 
-type Client struct {
+type client struct {
 	Host   string
 	Path   string
 	Client http.Client
+
+	token string
 }
 
-func (c *Client) Updates(offset, limit int) ([]models.Update, error) {
+func (c *client) updates(offset, limit int) ([]Update, error) {
 	query := url.Values{}
 
 	query.Add("offset", strconv.Itoa(offset))
 	query.Add("limit", strconv.Itoa(limit))
 
-	data, err := c.SendRequest("getUpdates", query)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp models.UpdatesResponse
-
-	if err := json.Unmarshal(data, &resp); err != nil {
+	var resp UpdatesResponse
+	if err := c.sendRequest("getUpdates", query, &resp); err != nil {
 		return nil, err
 	}
 
 	return resp.Result, nil
 }
 
-func (c *Client) SendMessage(chatID int, text string) error {
+func (c *client) sendMessage(chatID int, text string) error {
 	query := url.Values{}
 
 	query.Add("chat_id", strconv.Itoa(chatID))
 	query.Add("text", text)
 
-	_, err := c.SendRequest("sendMessage", query)
-	if err != nil {
+	var val interface{}
+
+	if err := c.sendRequest("sendMessage", query, &val); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *Client) SendPhoto(chatID int, text, path string, buttons [][]string) error {
+func (c *client) sendPhoto(chatID int, text, path string, buttons [][]string) error {
 	keyboard := map[string]interface{}{
 		"keyboard":        buttons,
 		"resize_keyboard": true,
@@ -73,6 +67,7 @@ func (c *Client) SendPhoto(chatID int, text, path string, buttons [][]string) er
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer func() {
 		if err := file.Close(); err != nil {
 			log.Fatal(err)
@@ -85,29 +80,25 @@ func (c *Client) SendPhoto(chatID int, text, path string, buttons [][]string) er
 		"reply_markup": string(keyboardJSON),
 	}
 
-	if err := SendFile(params, "photo", filepath.Base(path), file); err != nil {
+	if err = c.sendFile(params, "photo", filepath.Base(path), file); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func SendFile(params map[string]string, paramName, fileName string, file *os.File) error {
-	cfg, err := config.New("./config.yaml")
-	if err != nil {
-		return err
-	}
+func (c *client) sendFile(params map[string]string, paramName, fileName string, file *os.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	part, err := writer.CreateFormFile(paramName, fileName)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	_, err = io.Copy(part, file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	for key, val := range params {
@@ -116,17 +107,18 @@ func SendFile(params map[string]string, paramName, fileName string, file *os.Fil
 
 	_ = writer.Close()
 
-	urlSendPhoto := fmt.Sprintf("https://api.telegram.org/bot%s/%s", cfg.AlertBot.Token, "sendPhoto")
-	req, err := http.NewRequest("POST", urlSendPhoto, body)
+	urlSendPhoto := fmt.Sprintf("https://api.telegram.org/bot%s/%s", c.token, "sendPhoto")
+	req, err := http.NewRequest(http.MethodPost, urlSendPhoto, body)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
 			log.Fatal(err)
@@ -134,13 +126,13 @@ func SendFile(params map[string]string, paramName, fileName string, file *os.Fil
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("Ошибка HTTP запроса: %s", resp.Status)
+		return err
 	}
 
 	return nil
 }
 
-func (c *Client) SendRequest(method string, query url.Values) ([]byte, error) {
+func (c *client) sendRequest(method string, query url.Values, value interface{}) error {
 	u := url.URL{
 		Scheme: "https",
 		Host:   c.Host,
@@ -149,14 +141,14 @@ func (c *Client) SendRequest(method string, query url.Values) ([]byte, error) {
 
 	request, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	request.URL.RawQuery = query.Encode()
 
 	response, err := c.Client.Do(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer func() {
@@ -165,16 +157,15 @@ func (c *Client) SendRequest(method string, query url.Values) ([]byte, error) {
 		}
 	}()
 
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
+	if err = json.NewDecoder(response.Body).Decode(value); err != nil {
+		return err
 	}
 
-	return body, nil
+	return nil
 }
 
-func New(host, token string) *Client {
-	return &Client{
+func newClient(host, token string) *client {
+	return &client{
 		Host:   host,
 		Path:   "bot" + token,
 		Client: http.Client{},

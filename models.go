@@ -1,4 +1,4 @@
-package models
+package alertbot
 
 type UpdatesResponse struct {
 	OK     bool     `json:"ok"`

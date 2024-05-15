@@ -1,4 +1,0 @@
-server:
-  alert_bot:
-    telegram_token: '7118970220:AAFXcscjaWVWxvmhJlEFw5DpD0sBeQlb_U4'
-    telegram_host: 'api.telegram.org'

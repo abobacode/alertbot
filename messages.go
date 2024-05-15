@@ -1,4 +1,4 @@
-package telegram
+package alertbot
 
 const (
 	Error   = "🔴 ERROR: "

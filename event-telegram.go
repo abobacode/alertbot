@@ -1,15 +1,11 @@
-package telegram
+package alertbot
 
 import (
 	"log"
-
-	"github.com/abobacode/alertbot/internal/events"
-	"github.com/abobacode/alertbot/internal/models"
-	"github.com/abobacode/alertbot/internal/usecase"
 )
 
 type Processor struct {
-	tg     *usecase.Client
+	tg     *client
 	offset int
 }
 
@@ -19,8 +15,8 @@ type MetaNew struct {
 	UserName  string
 }
 
-func (p *Processor) Fetch(limit int) ([]events.Event, error) {
-	updates, err := p.tg.Updates(p.offset, limit)
+func (p *Processor) Fetch(limit int) ([]Event, error) {
+	updates, err := p.tg.updates(p.offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +25,7 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 		return nil, nil
 	}
 
-	res := make([]events.Event, 0, len(updates))
+	res := make([]Event, 0, len(updates))
 
 	for _, u := range updates {
 		res = append(res, event(u))
@@ -40,9 +36,9 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	return res, nil
 }
 
-func (p *Processor) Process(event events.Event) error {
+func (p *Processor) Process(event Event) error {
 	switch event.Type {
-	case events.Message:
+	case Message:
 		return p.ProcessMessage(event)
 	default:
 		log.Fatal("can't process message")
@@ -51,7 +47,7 @@ func (p *Processor) Process(event events.Event) error {
 	return nil
 }
 
-func (p *Processor) ProcessMessage(event events.Event) error {
+func (p *Processor) ProcessMessage(event Event) error {
 	meta, err := Meta(event)
 	if err != nil {
 		return err
@@ -69,7 +65,7 @@ func (p *Processor) ProcessMessage(event events.Event) error {
 	return nil
 }
 
-func Meta(event events.Event) (MetaNew, error) {
+func Meta(event Event) (MetaNew, error) {
 	res, ok := event.Meta.(MetaNew)
 	if !ok {
 		return MetaNew{}, nil
@@ -78,13 +74,13 @@ func Meta(event events.Event) (MetaNew, error) {
 	return res, nil
 }
 
-func event(upd models.Update) events.Event {
-	res := events.Event{
+func event(upd Update) Event {
+	res := Event{
 		Type: FetchType(upd),
 		Text: FetchText(upd),
 	}
 
-	if FetchType(upd) == events.Message {
+	if FetchType(upd) == Message {
 		res.Meta = MetaNew{
 			ChatID:    upd.Message.Chat.ID,
 			FirstName: upd.Message.From.FirstName,
@@ -95,7 +91,7 @@ func event(upd models.Update) events.Event {
 	return res
 }
 
-func FetchText(upd models.Update) string {
+func FetchText(upd Update) string {
 	if upd.Message == nil {
 		return ""
 	}
@@ -103,15 +99,15 @@ func FetchText(upd models.Update) string {
 	return upd.Message.Text
 }
 
-func FetchType(upd models.Update) events.Type {
+func FetchType(upd Update) Type {
 	if upd.Message == nil {
-		return events.Unknown
+		return Unknown
 	}
 
-	return events.Message
+	return Message
 }
 
-func NewTg(client *usecase.Client) *Processor {
+func NewTg(client *client) *Processor {
 	return &Processor{
 		tg: client,
 	}
