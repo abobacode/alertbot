@@ -18,10 +18,6 @@ import (
 	"alertbot/internal/models"
 )
 
-const (
-	buttonURL = "https://www.google.com"
-)
-
 type Client struct {
 	Host   string
 	Path   string
@@ -89,14 +85,14 @@ func (c *Client) SendPhoto(chatID int, text, path string, buttons [][]string) er
 		"reply_markup": string(keyboardJSON),
 	}
 
-	if err := sendFile(params, "photo", filepath.Base(path), file); err != nil {
+	if err := SendFile(params, "photo", filepath.Base(path), file); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func sendFile(params map[string]string, paramName, fileName string, file *os.File) error {
+func SendFile(params map[string]string, paramName, fileName string, file *os.File) error {
 	cfg, err := config.New("./config.yaml")
 	if err != nil {
 		return err

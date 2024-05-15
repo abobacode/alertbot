@@ -1,9 +1,10 @@
 package consumer
 
 import (
-	"alertbot/internal/events"
 	"log"
 	"time"
+
+	"alertbot/internal/events"
 )
 
 type Consumer struct {
@@ -25,14 +26,14 @@ func (c *Consumer) Start() error {
 			continue
 		}
 
-		if err := c.handleEvents(gotEvents); err != nil {
+		if err := c.HandleEvents(gotEvents); err != nil {
 			log.Print(err)
 			continue
 		}
 	}
 }
 
-func (c *Consumer) handleEvents(events []events.Event) error {
+func (c *Consumer) HandleEvents(events []events.Event) error {
 	for _, event := range events {
 		if event.Type == 0 {
 			continue

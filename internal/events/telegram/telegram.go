@@ -1,10 +1,10 @@
 package telegram
 
 import (
-	"alertbot/internal/models"
 	"log"
 
 	"alertbot/internal/events"
+	"alertbot/internal/models"
 	"alertbot/internal/usecase"
 )
 
@@ -13,7 +13,7 @@ type Processor struct {
 	offset int
 }
 
-type Meta struct {
+type MetaNew struct {
 	ChatID    int
 	FirstName string
 	UserName  string
@@ -43,7 +43,7 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 func (p *Processor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
-		return p.processMessage(event)
+		return p.ProcessMessage(event)
 	default:
 		log.Fatal("can't process message")
 	}
@@ -51,13 +51,13 @@ func (p *Processor) Process(event events.Event) error {
 	return nil
 }
 
-func (p *Processor) processMessage(event events.Event) error {
-	meta, err := meta(event)
+func (p *Processor) ProcessMessage(event events.Event) error {
+	meta, err := Meta(event)
 	if err != nil {
 		return err
 	}
 
-	if err := p.cmd(
+	if err := p.Cmd(
 		event.Text,
 		meta.FirstName,
 		meta.UserName,
@@ -69,10 +69,10 @@ func (p *Processor) processMessage(event events.Event) error {
 	return nil
 }
 
-func meta(event events.Event) (Meta, error) {
-	res, ok := event.Meta.(Meta)
+func Meta(event events.Event) (MetaNew, error) {
+	res, ok := event.Meta.(MetaNew)
 	if !ok {
-		return Meta{}, nil
+		return MetaNew{}, nil
 	}
 
 	return res, nil
@@ -80,12 +80,12 @@ func meta(event events.Event) (Meta, error) {
 
 func event(upd models.Update) events.Event {
 	res := events.Event{
-		Type: fetchType(upd),
-		Text: fetchText(upd),
+		Type: FetchType(upd),
+		Text: FetchText(upd),
 	}
 
-	if fetchType(upd) == events.Message {
-		res.Meta = Meta{
+	if FetchType(upd) == events.Message {
+		res.Meta = MetaNew{
 			ChatID:    upd.Message.Chat.ID,
 			FirstName: upd.Message.From.FirstName,
 			UserName:  upd.Message.From.UserName,
@@ -95,7 +95,7 @@ func event(upd models.Update) events.Event {
 	return res
 }
 
-func fetchText(upd models.Update) string {
+func FetchText(upd models.Update) string {
 	if upd.Message == nil {
 		return ""
 	}
@@ -103,7 +103,7 @@ func fetchText(upd models.Update) string {
 	return upd.Message.Text
 }
 
-func fetchType(upd models.Update) events.Type {
+func FetchType(upd models.Update) events.Type {
 	if upd.Message == nil {
 		return events.Unknown
 	}

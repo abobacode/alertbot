@@ -6,29 +6,34 @@ import (
 )
 
 const (
-	StartCmd = "/start"
+	StartCmd          = "/start"
+	msgUnknownCommand = "What Is This ? :)"
 )
 
-func (p *Processor) cmd(text, firstName, userName string, chatID int) error {
+func (p *Processor) Cmd(text, firstName, userName string, chatID int) error {
 	text = strings.TrimSpace(text)
 
 	log.Printf("got new command '%s' from '%s'", text, userName)
 
 	switch text {
 	case StartCmd:
-		buttons := [][]string{
-			{},
-			{},
-			{},
-		}
-		return p.sendHello(chatID, firstName, buttons)
+		return p.SendHello(chatID, firstName)
+	case Error:
+		return p.SendAlert(chatID, Error)
+	case Warning:
+		return p.SendAlert(chatID, Warning)
+	case Okay:
+		return p.SendAlert(chatID, Okay)
 	default:
 		return p.tg.SendMessage(chatID, msgUnknownCommand)
 	}
 }
 
-func (p *Processor) sendHello(chatID int, name string, buttons [][]string) error {
+func (p *Processor) SendHello(chatID int, name string) error {
 	msgHello := "Привет, " + name + "!\n"
-	path := "C:\\Goland\\ovpn\\internal\\telegram\\pics\\vpn_start.png"
-	return p.tg.SendPhoto(chatID, msgHello, path, buttons)
+	return p.tg.SendMessage(chatID, msgHello)
+}
+
+func (p *Processor) SendAlert(chatID int, text string) error {
+	return p.tg.SendMessage(chatID, text)
 }

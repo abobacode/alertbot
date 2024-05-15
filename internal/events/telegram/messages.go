@@ -1,5 +1,7 @@
 package telegram
 
 const (
-	msgUnknownCommand = "Такой команды у нас еще нет 🤔"
+	Error   = "🔴 ERROR: "
+	Warning = "🟡 WARNING: "
+	Okay    = "🟢 STABLE WORK!"
 )
