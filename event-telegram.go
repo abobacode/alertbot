@@ -5,7 +5,7 @@ import (
 )
 
 type Processor struct {
-	tg     *client
+	tg     *Client
 	offset int
 }
 
@@ -107,7 +107,7 @@ func FetchType(upd Update) Type {
 	return Message
 }
 
-func NewTg(client *client) *Processor {
+func NewTg(client *Client) *Processor {
 	return &Processor{
 		tg: client,
 	}

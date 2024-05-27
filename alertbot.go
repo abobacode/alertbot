@@ -9,7 +9,7 @@ func New(ctx context.Context, host, token string) error {
 		batchSize = 100
 	)
 
-	eventProcessor := NewTg(newClient(host, token))
+	eventProcessor := NewTg(NewClient(host, token))
 	cons := newConsumer(eventProcessor, eventProcessor, batchSize)
 
 	if err := cons.start(ctx); err != nil {

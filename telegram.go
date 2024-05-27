@@ -15,7 +15,7 @@ import (
 	"strconv"
 )
 
-type client struct {
+type Client struct {
 	Host   string
 	Path   string
 	Client http.Client
@@ -23,7 +23,7 @@ type client struct {
 	token string
 }
 
-func (c *client) updates(offset, limit int) ([]Update, error) {
+func (c *Client) updates(offset, limit int) ([]Update, error) {
 	query := url.Values{}
 
 	query.Add("offset", strconv.Itoa(offset))
@@ -37,7 +37,7 @@ func (c *client) updates(offset, limit int) ([]Update, error) {
 	return resp.Result, nil
 }
 
-func (c *client) sendMessage(chatID int, text string) error {
+func (c *Client) sendMessage(chatID int, text string) error {
 	query := url.Values{}
 
 	query.Add("chat_id", strconv.Itoa(chatID))
@@ -52,7 +52,7 @@ func (c *client) sendMessage(chatID int, text string) error {
 	return nil
 }
 
-func (c *client) sendPhoto(chatID int, text, path string, buttons [][]string) error {
+func (c *Client) sendPhoto(chatID int, text, path string, buttons [][]string) error {
 	keyboard := map[string]interface{}{
 		"keyboard":        buttons,
 		"resize_keyboard": true,
@@ -87,7 +87,7 @@ func (c *client) sendPhoto(chatID int, text, path string, buttons [][]string) er
 	return nil
 }
 
-func (c *client) sendFile(params map[string]string, paramName, fileName string, file *os.File) error {
+func (c *Client) sendFile(params map[string]string, paramName, fileName string, file *os.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -132,7 +132,7 @@ func (c *client) sendFile(params map[string]string, paramName, fileName string, 
 	return nil
 }
 
-func (c *client) sendRequest(method string, query url.Values, value interface{}) error {
+func (c *Client) sendRequest(method string, query url.Values, value interface{}) error {
 	u := url.URL{
 		Scheme: "https",
 		Host:   c.Host,
@@ -164,8 +164,8 @@ func (c *client) sendRequest(method string, query url.Values, value interface{})
 	return nil
 }
 
-func newClient(host, token string) *client {
-	return &client{
+func NewClient(host, token string) *Client {
+	return &Client{
 		Host:   host,
 		Path:   "bot" + token,
 		Client: http.Client{},
