@@ -37,10 +37,9 @@ func (c *Client) updates(offset, limit int) ([]Update, error) {
 	return resp.Result, nil
 }
 
-func (c *Client) sendMessage(chatID int, text string) error {
+func (c *Client) sendMessage(text string) error {
 	query := url.Values{}
 
-	query.Add("chat_id", strconv.Itoa(chatID))
 	query.Add("text", text)
 
 	var val interface{}

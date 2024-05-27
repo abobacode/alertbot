@@ -48,16 +48,13 @@ func (p *Processor) Process(event Event) error {
 }
 
 func (p *Processor) ProcessMessage(event Event) error {
-	meta, err := Meta(event)
-	if err != nil {
-		return err
-	}
+	//meta, err := Meta(event)
+	//if err != nil {
+	//	return err
+	//}
 
 	if err := p.Cmd(
 		event.Text,
-		meta.FirstName,
-		meta.UserName,
-		meta.ChatID,
 	); err != nil {
 		return err
 	}
